@@ -1,0 +1,186 @@
+---
+title: "World Flags Comparison"
+execute:
+  echo: false
+format: html
+---
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(tidyverse)
+
+# Load flag data containing characteristics and historical significance
+flag_data <- read_csv("flag_descriptions.csv", show_col_types = FALSE) |>
+  arrange(name)
+
+# Pass the data frame to Observable JS
+ojs_define(flags_data = flag_data)
+```
+
+```{ojs}
+//| echo: false
+flags = transpose(flags_data)
+```
+
+### 🏷️ Categorize Flags
+
+```{ojs}
+//| echo: false
+// Buttons to categorize and filter the flags list by characteristics
+viewof category = Inputs.radio(
+  [
+    "All Flags",
+    "2-3 Colors",
+    "4+ Colors",
+    "Low Complexity",
+    "High Complexity",
+    "Symmetric",
+    "Asymmetric",
+    "High Distinctiveness"
+  ],
+  {
+    label: "Filter by Characteristic:",
+    value: "All Flags"
+  }
+)
+
+filteredFlags = {
+  if (category === "2-3 Colors") return flags.filter(d => d.num_colors <= 3);
+  if (category === "4+ Colors") return flags.filter(d => d.num_colors >= 4);
+  if (category === "Low Complexity") return flags.filter(d => d.complexity === "Low");
+  if (category === "High Complexity") return flags.filter(d => d.complexity === "High");
+  if (category === "Symmetric") return flags.filter(d => d.symmetry !== "Asymmetric");
+  if (category === "Asymmetric") return flags.filter(d => d.symmetry === "Asymmetric");
+  if (category === "High Distinctiveness") return flags.filter(d => d.distinctiveness === "High");
+  return flags;
+}
+```
+
+::: {layout-ncol=2}
+```{ojs}
+//| echo: false
+viewof selected1 = Inputs.select(filteredFlags, {
+  label: "Choose a country:",
+  format: d => d.name,
+  value: filteredFlags.find(d => d.code === "cn") || filteredFlags[0]
+})
+
+html`
+<div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; background-color: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+  <h3 style="margin-top: 0;">${selected1.name}</h3>
+  <img 
+    src="${selected1.file}" 
+    alt="Flag of ${selected1.name}" 
+    style="max-width: 100%; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); margin-bottom: 0.75rem;" 
+  />
+  <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+    <span style="background: #e7f1ff; color: #0d6efd; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.82rem;">🎨 <strong>Colors:</strong> ${selected1.num_colors}</span>
+    <span style="background: #e8f5e9; color: #2e7d32; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.82rem;">🧩 <strong>Complexity:</strong> ${selected1.complexity}</span>
+    <span style="background: #fff3e0; color: #e65100; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.82rem;">⚖️ <strong>Symmetry:</strong> ${selected1.symmetry}</span>
+    <span style="background: #f3e5f5; color: #7b1fa2; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.82rem;">🌟 <strong>Distinctiveness:</strong> ${selected1.distinctiveness}</span>
+  </div>
+  <div style="background-color: #f8f9fa; border-left: 4px solid #0d6efd; padding: 0.75rem 1rem; border-radius: 0 4px 4px 0; font-size: 0.95rem; line-height: 1.5;">
+    <strong>Historical Significance:</strong>
+    <p style="margin: 0.4rem 0 0 0;">${selected1.significance}</p>
+  </div>
+</div>
+`
+```
+
+```{ojs}
+//| echo: false
+viewof selected2 = Inputs.select(filteredFlags, {
+  label: "Choose a country:",
+  format: d => d.name,
+  value: filteredFlags.find(d => d.code === "us") || (filteredFlags[1] || filteredFlags[0])
+})
+
+html`
+<div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; background-color: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+  <h3 style="margin-top: 0;">${selected2.name}</h3>
+  <img 
+    src="${selected2.file}" 
+    alt="Flag of ${selected2.name}" 
+    style="max-width: 100%; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); margin-bottom: 0.75rem;" 
+  />
+  <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem;">
+    <span style="background: #e7f1ff; color: #0d6efd; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.82rem;">🎨 <strong>Colors:</strong> ${selected2.num_colors}</span>
+    <span style="background: #e8f5e9; color: #2e7d32; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.82rem;">🧩 <strong>Complexity:</strong> ${selected2.complexity}</span>
+    <span style="background: #fff3e0; color: #e65100; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.82rem;">⚖️ <strong>Symmetry:</strong> ${selected2.symmetry}</span>
+    <span style="background: #f3e5f5; color: #7b1fa2; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.82rem;">🌟 <strong>Distinctiveness:</strong> ${selected2.distinctiveness}</span>
+  </div>
+  <div style="background-color: #f8f9fa; border-left: 4px solid #0d6efd; padding: 0.75rem 1rem; border-radius: 0 4px 4px 0; font-size: 0.95rem; line-height: 1.5;">
+    <strong>Historical Significance:</strong>
+    <p style="margin: 0.4rem 0 0 0;">${selected2.significance}</p>
+  </div>
+</div>
+`
+```
+:::
+
+### ⚖️ Characteristic Comparison
+
+```{ojs}
+//| echo: false
+// Buttons to highlight a specific characteristic comparison
+viewof compareCharacteristic = Inputs.radio(
+  [
+    "All Characteristics",
+    "Number of Colors",
+    "Complexity",
+    "Symmetry",
+    "Distinctiveness"
+  ],
+  {
+    label: "Compare Focus:",
+    value: "All Characteristics"
+  }
+)
+```
+
+```{ojs}
+//| echo: false
+html`
+<div style="margin-top: 1rem; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+  <table style="width: 100%; border-collapse: collapse; text-align: left; margin: 0;">
+    <thead>
+      <tr style="background-color: #0d6efd; color: white;">
+        <th style="padding: 0.75rem 1rem; width: 25%; color: white;">Characteristic</th>
+        <th style="padding: 0.75rem 1rem; width: 35%; color: white;">${selected1.name}</th>
+        <th style="padding: 0.75rem 1rem; width: 35%; color: white;">${selected2.name}</th>
+        <th style="padding: 0.75rem 1rem; width: 15%; text-align: center; color: white;">Match?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid #eee; background-color: ${compareCharacteristic === "Number of Colors" ? "#fff9db" : "#ffffff"};">
+        <td style="padding: 0.75rem 1rem; font-weight: 600;">🎨 Number of Colors</td>
+        <td style="padding: 0.75rem 1rem;">${selected1.num_colors} colors</td>
+        <td style="padding: 0.75rem 1rem;">${selected2.num_colors} colors</td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">${selected1.num_colors === selected2.num_colors ? "✅ Identical" : "❌ Different"}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eee; background-color: ${compareCharacteristic === "Complexity" ? "#fff9db" : "#fafafa"};">
+        <td style="padding: 0.75rem 1rem; font-weight: 600;">🧩 Complexity</td>
+        <td style="padding: 0.75rem 1rem;">${selected1.complexity}</td>
+        <td style="padding: 0.75rem 1rem;">${selected2.complexity}</td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">${selected1.complexity === selected2.complexity ? "✅ Identical" : "❌ Different"}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #eee; background-color: ${compareCharacteristic === "Symmetry" ? "#fff9db" : "#ffffff"};">
+        <td style="padding: 0.75rem 1rem; font-weight: 600;">⚖️ Symmetry</td>
+        <td style="padding: 0.75rem 1rem;">${selected1.symmetry}</td>
+        <td style="padding: 0.75rem 1rem;">${selected2.symmetry}</td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">${selected1.symmetry === selected2.symmetry ? "✅ Identical" : "❌ Different"}</td>
+      </tr>
+      <tr style="background-color: ${compareCharacteristic === "Distinctiveness" ? "#fff9db" : "#fafafa"};">
+        <td style="padding: 0.75rem 1rem; font-weight: 600;">🌟 Distinctiveness</td>
+        <td style="padding: 0.75rem 1rem;">${selected1.distinctiveness}</td>
+        <td style="padding: 0.75rem 1rem;">${selected2.distinctiveness}</td>
+        <td style="padding: 0.75rem 1rem; text-align: center;">${selected1.distinctiveness === selected2.distinctiveness ? "✅ Identical" : "❌ Different"}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`
+```
